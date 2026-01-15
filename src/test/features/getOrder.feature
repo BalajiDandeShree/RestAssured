@@ -9,4 +9,4 @@ Feature: Validate Create Order feature
 
     Examples:
       | OrderID           | Status Code |
-      | 82D08549NS735492N | 200         |
+      | 7C683241HP666834R | 200         |

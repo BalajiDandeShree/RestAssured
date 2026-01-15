@@ -17,8 +17,11 @@ pipeline {
         stage('Run API Tests') {
             steps {
                 echo 'Executing RestAssured Cucumber Tests...'
-                // Running maven test. Note: the Extent Adapter handles report generation automatically.
-                bat 'mvn test'
+                // Using catchError ensures that even if tests fail, the pipeline
+                // continues to the "Publish Extent Report" stage.
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    bat 'mvn test'
+                }
             }
         }
 
@@ -26,7 +29,6 @@ pipeline {
             steps {
                 echo 'Publishing Extent Reports to Jenkins UI...'
                 publishHTML([
-                    allowHeaderStrategy: false,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: 'htmlreports/HTML_20Report',
@@ -41,6 +43,7 @@ pipeline {
     post {
         always {
             echo 'Archiving Test Results...'
+            // Archiving standard JUnit XML results for Jenkins trend charts
             junit '**/target/surefire-reports/*.xml'
         }
         success {

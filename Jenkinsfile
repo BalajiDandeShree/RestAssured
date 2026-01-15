@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        // Ensure "Maven3" is configured in Jenkins Global Tool Configuration
+        // Ensure this matches exactly what is in Global Tool Configuration
         maven 'apache-maven-3.9.6'
     }
 
@@ -17,8 +17,6 @@ pipeline {
         stage('Run API Tests') {
             steps {
                 echo 'Executing RestAssured Cucumber Tests...'
-                // Using catchError ensures that even if tests fail, the pipeline
-                // continues to the "Publish Extent Report" stage.
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     bat 'mvn test'
                 }
@@ -29,6 +27,7 @@ pipeline {
             steps {
                 echo 'Publishing Extent Reports to Jenkins UI...'
                 publishHTML([
+                    allowMissing: true,         // Added this required parameter
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: 'htmlreports/HTML_20Report',
@@ -43,7 +42,6 @@ pipeline {
     post {
         always {
             echo 'Archiving Test Results...'
-            // Archiving standard JUnit XML results for Jenkins trend charts
             junit '**/target/surefire-reports/*.xml'
         }
         success {

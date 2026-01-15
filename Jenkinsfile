@@ -1,56 +1,32 @@
 pipeline {
     agent any
-
-    tools {
-        // Ensure this matches exactly what is in Global Tool Configuration
-        maven 'apache-maven-3.9.6'
-    }
-
+    tools { maven 'apache-maven-3.9.6' }
     stages {
-        stage('Cleanup') {
+        stage('Run Suite 1') {
             steps {
-                echo 'Cleaning up previous builds...'
-                bat 'mvn clean'
-            }
-        }
-
-
-        stage('Run API Tests') {
-            steps {
-                echo 'Executing RestAssured Cucumber Tests using testng.xml...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    // Hardcode the specific XML file path here
+                    // Hardcoded to run testng.xml
                     bat 'mvn test -DsuiteXmlFile=src/test/suite/testng.xml'
                 }
             }
         }
-
-        stage('Publish Extent Report') {
+        stage('Publish Report') {
             steps {
-                echo 'Publishing Extent Reports to Jenkins UI...'
                 publishHTML([
-                    allowMissing: true,         // Added this required parameter
+                    allowMissing: true,
                     alwaysLinkToLastBuild: true,
                     keepAll: true,
                     reportDir: 'htmlreports/HTML_20Report',
                     reportFiles: 'index.html',
-                    reportName: 'Extent API Report',
-                    reportTitles: 'RestAssured Test Execution'
+                    reportName: 'Extent Report - Suite 1'
                 ])
             }
         }
     }
-
     post {
         always {
-            echo 'Archiving Test Results...'
-            junit '**/target/surefire-reports/*.xml'
-        }
-        success {
-            echo 'Tests Passed Successfully!'
-        }
-        failure {
-            echo 'Tests Failed. Check the Extent Report for details.'
+            // CRITICAL: Archive the report so the Coordinator can see it
+            archiveArtifacts artifacts: 'htmlreports/HTML_20Report/**', allowEmptyArchive: false
         }
     }
 }

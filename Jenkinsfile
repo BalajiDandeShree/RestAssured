@@ -14,11 +14,13 @@ pipeline {
             }
         }
 
+
         stage('Run API Tests') {
             steps {
-                echo 'Executing RestAssured Cucumber Tests...'
+                echo 'Executing RestAssured Cucumber Tests using testng.xml...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    bat 'mvn test'
+                    // Hardcode the specific XML file path here
+                    bat 'mvn test -DsuiteXmlFile=src/test/suite/testng.xml'
                 }
             }
         }
